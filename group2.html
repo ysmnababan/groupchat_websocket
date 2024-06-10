@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Second Group Chat</title>
+    <style>
+        #chat {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #message {
+            width: calc(100% - 80px);
+        }
+        #send {
+            width: 70px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat"></div>
+    <input type="text" id="username" placeholder="Username">
+    <input type="text" id="message" placeholder="Message">
+    <button id="send">Send</button>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const usernameInput = document.getElementById('username');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+
+        // create new websocket connection from client
+        const ws = new WebSocket('ws://localhost:1323/ws/group2');
+        
+        // when receiving message from server
+        ws.onmessage= function(event) {
+            const msg = JSON.parse(event.data);
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${msg.time} ${msg.username}: ${msg.message}`;
+            chat.appendChild(messageElement);
+            chat.scrollTop=chat.scrollHeight;
+        };
+
+        sendButton.onclick = function(){
+            const msg = {
+                username: usernameInput.value,
+                message: messageInput.value,
+                time: new Date().toLocaleTimeString()
+            };
+
+            ws.send(JSON.stringify(msg));
+            messageInput.value = '';
+        };
+
+        messageInput.addEventListener('keyup', function(event){
+            if (event.keyCode === 13){
+                sendButton.click();
+            }
+        });
+
+    </script>
+</body>
+</html>
